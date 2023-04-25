@@ -169,21 +169,26 @@ class Generator(nn.Module):
         if w_hpf > 0:
             device = torch.device(
                 'cuda' if torch.cuda.is_available() else 'cpu')
-            self.hpf = HighPass(w_hpf, device)
+            self.hpf = HighPass(w_hpf, device)  # -------------------------
 
     def forward(self, x, s, masks=None):
+        print(x.shape)
         x = self.from_rgb(x)
+        print('from_rgb', x.shape)
         cache = {}
-        for block in self.encode:
+        for i, block in enumerate(self.encode):
             if (masks is not None) and (x.size(2) in [32, 64, 128]):
                 cache[x.size(2)] = x
             x = block(x)
-        for block in self.decode:
+            print(f'encoder{i+1}', x.shape)
+        for i, block in enumerate(self.decode):
             x = block(x, s)
             if (masks is not None) and (x.size(2) in [32, 64, 128]):
                 mask = masks[0] if x.size(2) in [32] else masks[1]
                 mask = F.interpolate(mask, size=x.size(2), mode='bilinear')
-                x = x + self.hpf(mask * cache[x.size(2)])
+                x = x + self.hpf(mask * cache[x.size(2)]) # -------------------------
+            print(f'decoder{i+1}', x.shape)
+        print('to_rgb torch.Size([5, 3, 256, 256])')
         return self.to_rgb(x)
 
 

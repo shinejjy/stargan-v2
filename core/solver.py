@@ -55,7 +55,7 @@ class Solver(nn.Module):
                 CheckpointIO(ospj(args.checkpoint_dir, '{:06d}_nets_ema.ckpt'), data_parallel=True, **self.nets_ema),
                 CheckpointIO(ospj(args.checkpoint_dir, '{:06d}_optims.ckpt'), **self.optims)]
         else:
-            self.ckptios = [CheckpointIO(ospj(args.checkpoint_dir, '{:06d}_nets_ema.ckpt'), data_parallel=True, **self.nets_ema)]
+            self.ckptios = [CheckpointIO(ospj(args.checkpoint_dir, '100000_nets_ema2.ckpt'), data_parallel=True, **self.nets_ema)]
 
         self.to(self.device)
         for name, network in self.named_children():
@@ -102,6 +102,9 @@ class Solver(nn.Module):
             x_real, y_org = inputs.x_src, inputs.y_src
             x_ref, x_ref2, y_trg = inputs.x_ref, inputs.x_ref2, inputs.y_ref
             z_trg, z_trg2 = inputs.z_trg, inputs.z_trg2
+            # print('x_real', x_real.shape, 'y_org', y_org.shape, 'x_ref', x_real.shape,
+            #       'x_ref2', x_ref2.shape, 'y_trg', y_trg.shape, 'z_trg', z_trg.shape, 'z_trg2', z_trg2.shape)
+            # print(y_org)
 
             masks = nets.fan.get_heatmap(x_real) if args.w_hpf > 0 else None
 
@@ -171,7 +174,7 @@ class Solver(nn.Module):
                 calculate_metrics(nets_ema, args, i+1, mode='reference')
 
     @torch.no_grad()
-    def sample(self, loaders):
+    def sample(self, loaders, video_making=False):
         args = self.args
         nets_ema = self.nets_ema
         os.makedirs(args.result_dir, exist_ok=True)
@@ -184,9 +187,10 @@ class Solver(nn.Module):
         print('Working on {}...'.format(fname))
         utils.translate_using_reference(nets_ema, args, src.x, ref.x, ref.y, fname)
 
-        fname = ospj(args.result_dir, 'video_ref.mp4')
-        print('Working on {}...'.format(fname))
-        utils.video_ref(nets_ema, args, src.x, ref.x, ref.y, fname)
+        if video_making:
+            fname = ospj(args.result_dir, 'video_ref.mp4')
+            print('Working on {}...'.format(fname))
+            utils.video_ref(nets_ema, args, src.x, ref.x, ref.y, fname)
 
     @torch.no_grad()
     def evaluate(self):

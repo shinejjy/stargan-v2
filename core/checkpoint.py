@@ -16,6 +16,7 @@ class CheckpointIO(object):
     def __init__(self, fname_template, data_parallel=False, **kwargs):
         os.makedirs(os.path.dirname(fname_template), exist_ok=True)
         self.fname_template = fname_template
+        print(kwargs)
         self.module_dict = kwargs
         self.data_parallel = data_parallel
 
@@ -42,8 +43,9 @@ class CheckpointIO(object):
             module_dict = torch.load(fname)
         else:
             module_dict = torch.load(fname, map_location=torch.device('cpu'))
-            
+
         for name, module in self.module_dict.items():
+            print(name)
             if self.data_parallel:
                 module.module.load_state_dict(module_dict[name])
             else:

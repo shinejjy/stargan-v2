@@ -178,7 +178,7 @@ class InputFetcher:
     def _fetch_inputs(self):
         try:
             x, y = next(self.iter)
-        except (AttributeError, StopIteration):
+        except AttributeError or StopIteration:
             self.iter = iter(self.loader)
             x, y = next(self.iter)
         return x, y
@@ -186,7 +186,7 @@ class InputFetcher:
     def _fetch_refs(self):
         try:
             x, x2, y = next(self.iter_ref)
-        except (AttributeError, StopIteration):
+        except AttributeError or StopIteration:
             self.iter_ref = iter(self.loader_ref)
             x, x2, y = next(self.iter_ref)
         return x, x2, y
